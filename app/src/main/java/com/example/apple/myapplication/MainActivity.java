@@ -8,14 +8,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -39,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     //    其大概Layout如上圖，兩個Button分別為開始搜尋BLE Device與停止搜尋，下面為一個ListView，將搜尋到的BLE添加到ListView顯示。
     private TextView textView;
     private ListView scanList;
-    private EditText input;
     private ArrayList<String> deviceName;
     private ArrayList<String> deviceScanRec;
     private ArrayList<String> devicesMessage;
@@ -89,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
 
         textView = (TextView) findViewById(R.id.textViewID);
         scanList = (ListView) findViewById(R.id.scanlistID);
-        input = (EditText) findViewById(R.id.inputText);
 
         deviceScanRec = new ArrayList<String>();
         deviceName = new ArrayList<String>();   //此ArrayList屬性為String，用來裝Devices Name
@@ -98,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
         listAdapter = new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_expandable_list_item_1, deviceName);//ListView使用的Adapter，
         scanList.setAdapter(listAdapter);//將listView綁上Adapter
-        input.addTextChangedListener(eteETListener); //監聽改變文字事件
+
         scanList.setOnItemClickListener(new onItemClickListener()); //綁上OnItemClickListener，設定ListView點擊觸發事件
         mHandler = new Handler();
 
@@ -159,8 +154,6 @@ public class MainActivity extends AppCompatActivity {
         mScanningMode = 3;
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
 
-        input = (EditText) findViewById(R.id.inputText);
-
         Intent ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
         stopService(ServiceIntent);
     }
@@ -174,8 +167,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent, REQUEST_ENABLE_BT); //再利用startActivityForResult啟動該Intent
         }
-
-        input = (EditText) findViewById(R.id.inputText);
 
         listAdapter = new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_expandable_list_item_1, deviceName);//ListView使用的Adapter，
         scanList.setAdapter(listAdapter);//將listView綁上Adapter
@@ -386,24 +377,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(goControlIntent);
         }
     }
-
-    public TextWatcher eteETListener = new TextWatcher() {
-
-        @Override
-        public void afterTextChanged(Editable arg0) {
-        }
-
-        @Override
-        public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-        }
-
-        @Override
-        public void onTextChanged(CharSequence arg0, int arg1, int arg2,
-                                  int arg3) {
-            Intent ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
-            stopService(ServiceIntent);
-        }
-    };
 
     public static byte[] hexStringToByteArray(String s) {
         int len = s.length();
