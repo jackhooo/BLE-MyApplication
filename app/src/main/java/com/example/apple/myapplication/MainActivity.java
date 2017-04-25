@@ -50,9 +50,10 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int SCAN_TIME = 60000;
-    private static final int AD2_TIME = 4000;
-    private static final int AD3_TIME = 8000;
+    private static final int AD2_TIME = 5000;
+    private static final int AD3_TIME = 10000;
     private static final int STOP_TIME = 500;
+    private static final int STOPAD_TIME = 1000;
     private ArrayList<BluetoothDevice> mBluetoothDevices = new ArrayList<BluetoothDevice>();
     private Handler mHandler; //該Handler用來搜尋Devices10秒後，自動停止搜尋
 
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        return new String(decryptResult,"UTF-8") ;
+        return new String(decryptResult, "UTF-8");
     }
 
     //需要注意的是，需加入一個stopLeScan在onPause()中，當按返回鍵或關閉程式時，需停止搜尋BLE
@@ -208,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 }
-            }, SCAN_TIME); //SCAN_TIME為幾秒後要執行此Runnable，此範例中為10秒
+            }, SCAN_TIME); //SCAN_TIME為 1分鐘 後要執行此Runnable
 
             mScanningMode = 1; //搜尋旗標設為true
             mBluetoothAdapter.startLeScan(mLeScanCallback);//開始搜尋BLE設備
@@ -227,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 }
-            }, STOP_TIME); //STOP_TIME為幾秒後要執行此Runnable，此範例中為1秒
+            }, STOP_TIME); //STOP_TIME為 0.5秒 後要執行此Runnable
 
             mScanningMode = 2;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -315,26 +316,26 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
 
                         stopService(ServiceIntent);
-                        ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  2" );
+                        ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  2");
                         startService(ServiceIntent);
 
                     }
-                }, AD2_TIME); //4秒後要執行
+                }, AD2_TIME); //5秒後要執行
 
                 mHandler.postDelayed(new Runnable() { //啟動一個Handler，並使用postDelayed在10秒後自動執行此Runnable()
                     @Override
                     public void run() {
 
                         stopService(ServiceIntent);
-                        ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  3" );
+                        ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  3");
                         startService(ServiceIntent);
 
                     }
-                }, AD3_TIME); //8秒後要執行
+                }, AD3_TIME); //10秒後要執行
 
                 //ServiceIntent.putExtra(AdvertiserService.INPUT, input.getText().toString());
                 //Toast.makeText(getBaseContext(), decodeResult , Toast.LENGTH_SHORT).show();
-                ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  1" );
+                ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  1");
                 startService(ServiceIntent);
                 break;
 
@@ -409,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i+1), 16));
+                    + Character.digit(s.charAt(i + 1), 16));
         }
         return data;
     }
