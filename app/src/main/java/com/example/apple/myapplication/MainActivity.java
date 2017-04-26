@@ -26,7 +26,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-
 import javax.crypto.Cipher;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,15 +45,11 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int SCAN_TIME = 60000;
-    private static final int AD2_TIME = 5000;
-    private static final int AD3_TIME = 10000;
     private static final int STOP_TIME = 500;
-    private static final int STOPAD_TIME = 1000;
     private ArrayList<BluetoothDevice> mBluetoothDevices = new ArrayList<BluetoothDevice>();
     private Handler mHandler; //該Handler用來搜尋Devices10秒後，自動停止搜尋
 
     private static String ALGORITHM = "RSA/ECB/PKCS1Padding";
-
     private KeyPairGenerator keygen;
     private SecureRandom random;
     private KeyPair keyPair;
@@ -111,39 +106,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public byte[] rsaEncode(String plainText) {
-
-        Encryption encryption = new Encryption();
-
-        byte[] encryptedResult = "0".getBytes();
-
-        try {
-            // Encrypt
-            encryptedResult = encryption.cryptByRSA(plainText.getBytes("UTF-8"), publicKey, ALGORITHM, Cipher.ENCRYPT_MODE);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return encryptedResult;
-    }
-
-    public String rsaDecode(byte[] result) throws UnsupportedEncodingException {
-
-        Encryption encryption = new Encryption();
-
-        byte[] decryptResult = "0".getBytes();
-
-        try {
-            decryptResult = encryption.cryptByRSA(result, privateKey, ALGORITHM, Cipher.DECRYPT_MODE);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return new String(decryptResult, "UTF-8");
-    }
-
     //需要注意的是，需加入一個stopLeScan在onPause()中，當按返回鍵或關閉程式時，需停止搜尋BLE
     //否則下次開啟程式時會影響到搜尋BLE device
     @Override
@@ -155,7 +117,12 @@ public class MainActivity extends AppCompatActivity {
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
 
         Intent ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
+        Intent ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
+        Intent ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
+
         stopService(ServiceIntent);
+        stopService(ServiceTwoIntent);
+        stopService(ServiceThreeIntent);
     }
 
     @Override
@@ -193,12 +160,10 @@ public class MainActivity extends AppCompatActivity {
             mHandler.postDelayed(new Runnable() { //啟動一個Handler，並使用postDelayed在10秒後自動執行此Runnable()
                 @Override
                 public void run() {
-
                     if (mScanningMode != 3) {
                         ScanFunction(false);
                         Log.d(TAG, "ScanFunction():Stop Scan");
                     }
-
                 }
             }, SCAN_TIME); //SCAN_TIME為 1分鐘 後要執行此Runnable
 
@@ -212,12 +177,10 @@ public class MainActivity extends AppCompatActivity {
             mHandler.postDelayed(new Runnable() { //啟動一個Handler，並使用postDelayed在10秒後自動執行此Runnable()
                 @Override
                 public void run() {
-
                     if (mScanningMode != 3) {
                         ScanFunction(true);
                         Log.d(TAG, "ScanFunction():Start Scan");
                     }
-
                 }
             }, STOP_TIME); //STOP_TIME為 0.5秒 後要執行此Runnable
 
@@ -291,7 +254,9 @@ public class MainActivity extends AppCompatActivity {
     //分別按下搜尋予停止搜尋button時的功能，分別為開始與停止AD
     public void adBtnClick(View v) throws UnsupportedEncodingException {
 
-        final Intent ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
+        Intent ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
+        Intent ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
+        Intent ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
 
         final byte[] encodeData = rsaEncode("Dada Good");
         String encodeDataToHex = bytesToHexString(encodeData);
@@ -302,36 +267,26 @@ public class MainActivity extends AppCompatActivity {
         switch (v.getId()) {
             case R.id.StartAdbutID:
 
-                mHandler.postDelayed(new Runnable() { //啟動一個Handler，並使用postDelayed在10秒後自動執行此Runnable()
-                    @Override
-                    public void run() {
-
-                        stopService(ServiceIntent);
-                        ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  2");
-                        startService(ServiceIntent);
-
-                    }
-                }, AD2_TIME); //5秒後要執行
-
-                mHandler.postDelayed(new Runnable() { //啟動一個Handler，並使用postDelayed在10秒後自動執行此Runnable()
-                    @Override
-                    public void run() {
-
-                        stopService(ServiceIntent);
-                        ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  3");
-                        startService(ServiceIntent);
-
-                    }
-                }, AD3_TIME); //10秒後要執行
-
                 //ServiceIntent.putExtra(AdvertiserService.INPUT, input.getText().toString());
                 //Toast.makeText(getBaseContext(), decodeResult , Toast.LENGTH_SHORT).show();
+
                 ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  1");
                 startService(ServiceIntent);
+
+                ServiceTwoIntent.putExtra(AdvertiserTwoService.INPUT, decodeResult + "  2");
+                startService(ServiceTwoIntent);
+
+                ServiceThreeIntent.putExtra(AdvertiserThreeService.INPUT, decodeResult + "  3");
+                startService(ServiceThreeIntent);
+
                 break;
 
             case R.id.StopAdbutID:
+
                 stopService(ServiceIntent);
+                stopService(ServiceTwoIntent);
+                stopService(ServiceThreeIntent);
+
                 break;
         }
     }
@@ -376,6 +331,28 @@ public class MainActivity extends AppCompatActivity {
 
             startActivity(goControlIntent);
         }
+    }
+
+    public byte[] rsaEncode(String plainText) {
+        Encryption encryption = new Encryption();
+        byte[] encryptedResult = "0".getBytes();
+
+        try {
+            encryptedResult = encryption.cryptByRSA(plainText.getBytes("UTF-8"), publicKey, ALGORITHM, Cipher.ENCRYPT_MODE);
+        } catch (Exception e) {
+            e.printStackTrace();}
+        return encryptedResult;
+    }
+
+    public String rsaDecode(byte[] result) throws UnsupportedEncodingException {
+        Encryption encryption = new Encryption();
+        byte[] decryptResult = "0".getBytes();
+
+        try {
+            decryptResult = encryption.cryptByRSA(result, privateKey, ALGORITHM, Cipher.DECRYPT_MODE);
+        } catch (Exception e) {
+            e.printStackTrace();}
+        return new String(decryptResult, "UTF-8");
     }
 
     public static byte[] hexStringToByteArray(String s) {
