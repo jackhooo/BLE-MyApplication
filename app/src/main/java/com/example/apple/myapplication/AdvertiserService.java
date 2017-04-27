@@ -29,6 +29,8 @@ public class AdvertiserService extends Service {
 
     public static final String INPUT = "INPUT";
 
+    public static final byte[] INPUTBYTE = "0".getBytes();
+
     private static final int FOREGROUND_NOTIFICATION_ID = 1;
 
     /**
@@ -55,6 +57,8 @@ public class AdvertiserService extends Service {
 
     private String inputData;
 
+    private byte[] inputByteData;
+
     /**
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
      */
@@ -70,6 +74,8 @@ public class AdvertiserService extends Service {
         Log.v(null, "onStartCommand");
 
         inputData = intent.getStringExtra(INPUT);
+
+        //inputByteData = intent.getByteArrayExtra(String.valueOf(INPUTBYTE));
 
         running = true;
         initialize();
@@ -219,9 +225,11 @@ public class AdvertiserService extends Service {
 
         int manufacturerID = 21315;
 
+        //Toast.makeText(AdvertiserService.this, Integer.toString(inputData.length()), Toast.LENGTH_LONG).show();
+
         //dataBuilder.addManufacturerData(manufacturerID, LongData.getBytes());
 
-        dataBuilder.addManufacturerData(manufacturerID, inputData.getBytes());
+        dataBuilder.addManufacturerData(manufacturerID, inputData.getBytes() );
 
         return dataBuilder.build();
     }

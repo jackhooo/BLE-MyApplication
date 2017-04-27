@@ -26,6 +26,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+
 import javax.crypto.Cipher;
 
 public class MainActivity extends AppCompatActivity {
@@ -264,19 +265,23 @@ public class MainActivity extends AppCompatActivity {
         byte[] decodeFrom = hexStringToByteArray(encodeDataToHex);
         final String decodeResult = rsaDecode(decodeFrom);
 
+        String adMessage1 = encodeDataToHex.substring(0,43);
+        String adMessage2 = encodeDataToHex.substring(43,86);
+        String adMessage3 = encodeDataToHex.substring(86,128);
+
         switch (v.getId()) {
             case R.id.StartAdbutID:
 
                 //ServiceIntent.putExtra(AdvertiserService.INPUT, input.getText().toString());
                 //Toast.makeText(getBaseContext(), decodeResult , Toast.LENGTH_SHORT).show();
 
-                ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  1");
+                ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  1" );
                 startService(ServiceIntent);
 
-                ServiceTwoIntent.putExtra(AdvertiserTwoService.INPUT, decodeResult + "  2");
+                ServiceTwoIntent.putExtra(AdvertiserTwoService.INPUT, decodeResult + "  2" );
                 startService(ServiceTwoIntent);
 
-                ServiceThreeIntent.putExtra(AdvertiserThreeService.INPUT, decodeResult + "  3");
+                ServiceThreeIntent.putExtra(AdvertiserThreeService.INPUT, decodeResult + "  3" );
                 startService(ServiceThreeIntent);
 
                 break;
