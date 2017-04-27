@@ -209,8 +209,6 @@ public class MainActivity extends AppCompatActivity {
                     if (!mBluetoothDevices.contains(device)) { //利用contains判斷是否有搜尋到重複的device
                         mBluetoothDevices.add(device);//如沒重複則添加到bluetoothDevices中
 
-                        Toast.makeText(getBaseContext(), "新設備", Toast.LENGTH_SHORT).show();
-
                         int manufacturerIDStart = 5;
 
                         if (device.getName() != null) {
@@ -224,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
 
                         if (manufacturerID.equals("CS")) {
                             adItem.add(manufacturerMessage);
+                            Toast.makeText(getBaseContext(), "新CS設備", Toast.LENGTH_SHORT).show();
                         }
 
                         deviceScanRec.add(bytesToHexString(scanRecord));
@@ -265,23 +264,23 @@ public class MainActivity extends AppCompatActivity {
         byte[] decodeFrom = hexStringToByteArray(encodeDataToHex);
         final String decodeResult = rsaDecode(decodeFrom);
 
-        String adMessage1 = encodeDataToHex.substring(0,43);
-        String adMessage2 = encodeDataToHex.substring(43,86);
-        String adMessage3 = encodeDataToHex.substring(86,128);
+        String adMessage1 = encodeDataToHex.substring(0,44);
+        String adMessage2 = encodeDataToHex.substring(44,88);
+        String adMessage3 = encodeDataToHex.substring(88,128);
 
         switch (v.getId()) {
             case R.id.StartAdbutID:
 
                 //ServiceIntent.putExtra(AdvertiserService.INPUT, input.getText().toString());
-                //Toast.makeText(getBaseContext(), decodeResult , Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getBaseContext(),  Integer.toString(encodeDataToHex.length()) , Toast.LENGTH_SHORT).show();
 
-                ServiceIntent.putExtra(AdvertiserService.INPUT, decodeResult + "  1" );
+                ServiceIntent.putExtra(AdvertiserService.INPUT, adMessage1 );
                 startService(ServiceIntent);
 
-                ServiceTwoIntent.putExtra(AdvertiserTwoService.INPUT, decodeResult + "  2" );
+                ServiceTwoIntent.putExtra(AdvertiserTwoService.INPUT, adMessage2 );
                 startService(ServiceTwoIntent);
 
-                ServiceThreeIntent.putExtra(AdvertiserThreeService.INPUT, decodeResult + "  3" );
+                ServiceThreeIntent.putExtra(AdvertiserThreeService.INPUT, adMessage3 );
                 startService(ServiceThreeIntent);
 
                 break;

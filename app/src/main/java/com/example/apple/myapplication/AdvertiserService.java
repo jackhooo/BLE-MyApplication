@@ -29,7 +29,7 @@ public class AdvertiserService extends Service {
 
     public static final String INPUT = "INPUT";
 
-    public static final byte[] INPUTBYTE = "0".getBytes();
+    //public static final byte[] INPUT_BYTE = "0".getBytes();
 
     private static final int FOREGROUND_NOTIFICATION_ID = 1;
 
@@ -57,7 +57,7 @@ public class AdvertiserService extends Service {
 
     private String inputData;
 
-    private byte[] inputByteData;
+    //private byte[] inputByteData;
 
     /**
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
@@ -75,7 +75,7 @@ public class AdvertiserService extends Service {
 
         inputData = intent.getStringExtra(INPUT);
 
-        //inputByteData = intent.getByteArrayExtra(String.valueOf(INPUTBYTE));
+        //inputByteData = intent.getByteArrayExtra(String.valueOf(INPUT_BYTE));
 
         running = true;
         initialize();
@@ -225,13 +225,33 @@ public class AdvertiserService extends Service {
 
         int manufacturerID = 21315;
 
+        String Hex = "f263575e7b00a977a8e9a37e08b9c215feb9bf";
+
         //Toast.makeText(AdvertiserService.this, Integer.toString(inputData.length()), Toast.LENGTH_LONG).show();
 
         //dataBuilder.addManufacturerData(manufacturerID, LongData.getBytes());
+        //dataBuilder.addManufacturerData(manufacturerID, inputData.getBytes() );
 
-        dataBuilder.addManufacturerData(manufacturerID, inputData.getBytes() );
+        byte[] inputHex = hexStringToByteArray(inputData);
+        byte[] inputNum = "1".getBytes();
+        byte[] adMessage = new byte[inputHex.length + inputNum.length];
+
+        System.arraycopy(inputHex, 0, adMessage, 0, inputHex.length);
+        System.arraycopy(inputNum, 0, adMessage, inputHex.length, inputNum.length);
+
+        dataBuilder.addManufacturerData(manufacturerID, adMessage);
 
         return dataBuilder.build();
+    }
+
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
     }
 
     /**
