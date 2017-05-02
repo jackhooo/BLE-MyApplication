@@ -29,6 +29,8 @@ public class AdvertiserThreeService extends Service {
 
     public static final String INPUT = "INPUT";
 
+    public static final String DEVICE_NUM = "DEVICE_NUM";
+
     private static final int FOREGROUND_NOTIFICATION_ID = 1;
 
     /**
@@ -55,6 +57,8 @@ public class AdvertiserThreeService extends Service {
 
     private String inputData;
 
+    private int deviceNum;
+
     /**
      * Length of time to allow advertising before automatically shutting off. (10 minutes)
      */
@@ -70,6 +74,7 @@ public class AdvertiserThreeService extends Service {
         Log.v(null, "onStartCommand");
 
         inputData = intent.getStringExtra(INPUT);
+        deviceNum = intent.getIntExtra(DEVICE_NUM,0);
 
         running = true;
         initialize();
@@ -224,11 +229,12 @@ public class AdvertiserThreeService extends Service {
         //dataBuilder.addManufacturerData(manufacturerID, inputData.getBytes());
 
         byte[] inputHex = hexStringToByteArray(inputData);
-        byte[] inputNum = "3".getBytes();
-        byte[] adMessage = new byte[inputHex.length + inputNum.length];
+        int startMessage = deviceNum * 10 + 3;
+        byte[] startMessageByte = hexStringToByteArray(String.format("%04x", startMessage));
+        byte[] adMessage = new byte[inputHex.length + startMessageByte.length];
 
-        System.arraycopy(inputHex, 0, adMessage, 0, inputHex.length);
-        System.arraycopy(inputNum, 0, adMessage, inputHex.length, inputNum.length);
+        System.arraycopy(startMessageByte, 0, adMessage, 0, startMessageByte.length);
+        System.arraycopy(inputHex, 0, adMessage, startMessageByte.length, inputHex.length);
 
         dataBuilder.addManufacturerData(manufacturerID, adMessage);
 

@@ -29,6 +29,8 @@ public class AdvertiserService extends Service {
 
     public static final String INPUT = "INPUT";
 
+    public static final String DEVICE_NUM = "DEVICE_NUM";
+
     //public static final byte[] INPUT_BYTE = "0".getBytes();
 
     private static final int FOREGROUND_NOTIFICATION_ID = 1;
@@ -57,6 +59,8 @@ public class AdvertiserService extends Service {
 
     private String inputData;
 
+    private int deviceNum;
+
     //private byte[] inputByteData;
 
     /**
@@ -74,6 +78,8 @@ public class AdvertiserService extends Service {
         Log.v(null, "onStartCommand");
 
         inputData = intent.getStringExtra(INPUT);
+
+        deviceNum = intent.getIntExtra(DEVICE_NUM,0);
 
         //inputByteData = intent.getByteArrayExtra(String.valueOf(INPUT_BYTE));
 
@@ -233,11 +239,23 @@ public class AdvertiserService extends Service {
         //dataBuilder.addManufacturerData(manufacturerID, inputData.getBytes() );
 
         byte[] inputHex = hexStringToByteArray(inputData);
-        byte[] inputNum = "1".getBytes();
-        byte[] adMessage = new byte[inputHex.length + inputNum.length];
 
-        System.arraycopy(inputHex, 0, adMessage, 0, inputHex.length);
-        System.arraycopy(inputNum, 0, adMessage, inputHex.length, inputNum.length);
+        //byte[] inputNum = "1".getBytes();
+
+        //byte[] deviceNumInByte = hexStringToByteArray(String.format("%03x", deviceNum));
+
+        int startMessage = deviceNum * 10 +1;
+        byte[] startMessageByte = hexStringToByteArray(String.format("%04x", startMessage));
+        byte[] adMessage = new byte[inputHex.length + startMessageByte.length];
+
+        System.arraycopy(startMessageByte, 0, adMessage, 0, startMessageByte.length);
+        System.arraycopy(inputHex, 0, adMessage, startMessageByte.length, inputHex.length);
+
+//        System.arraycopy(deviceNumInByte, 0, adMessage, 0, deviceNumInByte.length);
+//        System.arraycopy(inputHex, 0, adMessage, deviceNumInByte.length, inputHex.length);
+//
+//        System.arraycopy(inputNum, 0, adMessage, 0, inputNum.length);
+//        System.arraycopy(inputHex, 0, adMessage, inputNum.length, inputHex.length);
 
         dataBuilder.addManufacturerData(manufacturerID, adMessage);
 

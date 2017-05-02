@@ -18,14 +18,19 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Random;
 
 import javax.crypto.Cipher;
 
@@ -50,12 +55,13 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<BluetoothDevice> mBluetoothDevices = new ArrayList<BluetoothDevice>();
     private Handler mHandler; //該Handler用來搜尋Devices10秒後，自動停止搜尋
 
-    private static String ALGORITHM = "RSA/ECB/PKCS1Padding";
-    private KeyPairGenerator keygen;
-    private SecureRandom random;
-    private KeyPair keyPair;
+    private static String ALGORITHM = "RSA/ECB/NOPadding";
     private PublicKey publicKey;
     private PrivateKey privateKey;
+
+    private Device[] devices;
+    Random random = new Random();
+    int deviceNum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,25 +93,58 @@ public class MainActivity extends AppCompatActivity {
         devicesMessage = new ArrayList<>();
         adItem = new ArrayList<String>();
 
+        devices = new Device[10000];
+        for (int i = 0; i < 10000; i += 1) {
+            devices[i] = new Device();
+        }
+
+        deviceNum = random.nextInt(4095 - 0 + 1) + 0;//random.nextInt(max - min + 1) + min
+
         listAdapter = new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_expandable_list_item_1, deviceName);//ListView使用的Adapter，
         scanList.setAdapter(listAdapter);//將listView綁上Adapter
 
         scanList.setOnItemClickListener(new onItemClickListener()); //綁上OnItemClickListener，設定ListView點擊觸發事件
         mHandler = new Handler();
 
-        try {
-            keygen = KeyPairGenerator.getInstance("RSA");
-            random = new SecureRandom();
-            random.setSeed("CS".getBytes());
-            keygen.initialize(512, random);// TODO Change length may cause the result incorrect.
-            keyPair = keygen.generateKeyPair();
-            publicKey = keyPair.getPublic();
-            privateKey = keyPair.getPrivate();
+        //Toast.makeText(getBaseContext(),Integer.toString(deviceNum), Toast.LENGTH_SHORT).show();
 
-        } catch (NoSuchAlgorithmException e) {
+        try {
+            KeyPair loadedKeyPair = LoadKeyPair("RSA");
+            publicKey = loadedKeyPair.getPublic();
+            privateKey = loadedKeyPair.getPrivate();
+
+        } catch (Exception e) {
             e.printStackTrace();
+            return;
         }
+
     }
+
+    public KeyPair LoadKeyPair(String algorithm) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+
+        InputStream publicFis = getAssets().open("public.key");
+        int publicSize = publicFis.available();
+        byte[] encodedPublicKey = new byte[publicSize];
+        publicFis.read(encodedPublicKey);
+        publicFis.close();
+
+        InputStream privateFis = getAssets().open("private.key");
+        int privateSize = privateFis.available();
+        byte[] encodedPrivateKey = new byte[privateSize];
+        privateFis.read(encodedPrivateKey);
+        privateFis.close();
+
+        // Generate KeyPair.
+        KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
+        PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
+
+        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
+        PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+
+        return new KeyPair(publicKey, privateKey);
+    }
+
 
     //需要注意的是，需加入一個stopLeScan在onPause()中，當按返回鍵或關閉程式時，需停止搜尋BLE
     //否則下次開啟程式時會影響到搜尋BLE device
@@ -206,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                 //詳細可進到runOnUiThread中觀察
                 @Override
                 public void run() {
-                    if (!mBluetoothDevices.contains(device)) { //利用contains判斷是否有搜尋到重複的device
+                    if (!mBluetoothDevices.contains(device)) {//利用contains判斷是否有搜尋到重複的device
                         mBluetoothDevices.add(device);//如沒重複則添加到bluetoothDevices中
 
                         int manufacturerIDStart = 5;
@@ -221,8 +260,60 @@ public class MainActivity extends AppCompatActivity {
                         String manufacturerMessage = scanMessage.substring(messageStart);
 
                         if (manufacturerID.equals("CS")) {
-                            adItem.add(manufacturerMessage);
+
                             Toast.makeText(getBaseContext(), "新CS設備", Toast.LENGTH_SHORT).show();
+
+                            int hexPackageNumStart = 14;
+                            int hexPackageMessageStart = 18;
+                            String packageStartMessage = bytesToHexString(scanRecord).substring(hexPackageNumStart,hexPackageNumStart+4);
+
+                            int packageInt = Integer.parseInt(packageStartMessage,16);
+                            int packageNum = packageInt%10;
+                            int recieveDeviceNum = (packageInt - packageNum) / 10;
+
+                            manufacturerID += Integer.toString(recieveDeviceNum);
+
+                            // Toast.makeText(getBaseContext(),Integer.toString(recieveDeviceNum), Toast.LENGTH_SHORT).show();
+
+                            if(packageNum == 1){
+                                devices[recieveDeviceNum].hexMessage1 = bytesToHexString(scanRecord).substring(hexPackageMessageStart,hexPackageMessageStart+44);
+
+                                if(devices[recieveDeviceNum].checkIfAllMessageReceive()){
+                                    devices[recieveDeviceNum].setEncodedHex();
+                                    try {
+                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex)));
+                                    } catch (UnsupportedEncodingException e) {
+                                        e.printStackTrace();
+                                    }
+                                    devices[recieveDeviceNum].cleanMessage();
+                                }
+                            }
+                            else if(packageNum == 2){
+                                devices[recieveDeviceNum].hexMessage2 = bytesToHexString(scanRecord).substring(hexPackageMessageStart,hexPackageMessageStart+44);
+
+                                if(devices[recieveDeviceNum].checkIfAllMessageReceive()){
+                                    devices[recieveDeviceNum].setEncodedHex();
+                                    try {
+                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex)));
+                                    } catch (UnsupportedEncodingException e) {
+                                        e.printStackTrace();
+                                    }
+                                    devices[recieveDeviceNum].cleanMessage();
+                                }
+                            }
+                            else if(packageNum == 3){
+                                devices[recieveDeviceNum].hexMessage3 = bytesToHexString(scanRecord).substring(hexPackageMessageStart,hexPackageMessageStart+40);
+
+                                if(devices[recieveDeviceNum].checkIfAllMessageReceive()){
+                                    devices[recieveDeviceNum].setEncodedHex();
+                                    try {
+                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex)));
+                                    } catch (UnsupportedEncodingException e) {
+                                        e.printStackTrace();
+                                    }
+                                    devices[recieveDeviceNum].cleanMessage();
+                                }
+                            }
                         }
 
                         deviceScanRec.add(bytesToHexString(scanRecord));
@@ -261,8 +352,8 @@ public class MainActivity extends AppCompatActivity {
         final byte[] encodeData = rsaEncode("Dada Good");
         String encodeDataToHex = bytesToHexString(encodeData);
 
-        byte[] decodeFrom = hexStringToByteArray(encodeDataToHex);
-        final String decodeResult = rsaDecode(decodeFrom);
+//        byte[] decodeFrom = hexStringToByteArray(encodeDataToHex);
+//        final String decodeResult = rsaDecode(decodeFrom);
 
         String adMessage1 = encodeDataToHex.substring(0,44);
         String adMessage2 = encodeDataToHex.substring(44,88);
@@ -273,14 +364,18 @@ public class MainActivity extends AppCompatActivity {
 
                 //ServiceIntent.putExtra(AdvertiserService.INPUT, input.getText().toString());
                 //Toast.makeText(getBaseContext(),  Integer.toString(encodeDataToHex.length()) , Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getBaseContext(),  decodeResult , Toast.LENGTH_SHORT).show();
 
                 ServiceIntent.putExtra(AdvertiserService.INPUT, adMessage1 );
+                ServiceIntent.putExtra(AdvertiserService.DEVICE_NUM, deviceNum );
                 startService(ServiceIntent);
 
                 ServiceTwoIntent.putExtra(AdvertiserTwoService.INPUT, adMessage2 );
+                ServiceTwoIntent.putExtra(AdvertiserTwoService.DEVICE_NUM, deviceNum );
                 startService(ServiceTwoIntent);
 
                 ServiceThreeIntent.putExtra(AdvertiserThreeService.INPUT, adMessage3 );
+                ServiceThreeIntent.putExtra(AdvertiserThreeService.DEVICE_NUM, deviceNum );
                 startService(ServiceThreeIntent);
 
                 break;
