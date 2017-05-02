@@ -34,6 +34,8 @@ import java.util.Random;
 
 import javax.crypto.Cipher;
 
+import static javax.crypto.Cipher.ENCRYPT_MODE;
+
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
@@ -56,8 +58,10 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler; //該Handler用來搜尋Devices10秒後，自動停止搜尋
 
     private static String ALGORITHM = "RSA/ECB/NOPadding";
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
+    private PublicKey publicKey1;
+    private PrivateKey privateKey1;
+    private PublicKey publicKey2;
+    private PrivateKey privateKey2;
 
     private Device[] devices;
     Random random = new Random();
@@ -109,18 +113,19 @@ public class MainActivity extends AppCompatActivity {
         //Toast.makeText(getBaseContext(),Integer.toString(deviceNum), Toast.LENGTH_SHORT).show();
 
         try {
-            KeyPair loadedKeyPair = LoadKeyPair("RSA");
-            publicKey = loadedKeyPair.getPublic();
-            privateKey = loadedKeyPair.getPrivate();
-
+            KeyPair loadedKeyPair1 = LoadKeyPair1("RSA");
+            publicKey1 = loadedKeyPair1.getPublic();
+            privateKey1 = loadedKeyPair1.getPrivate();
+            KeyPair loadedKeyPair2 = LoadKeyPair2("RSA");
+            publicKey2 = loadedKeyPair2.getPublic();
+            privateKey2 = loadedKeyPair2.getPrivate();
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
-
     }
 
-    public KeyPair LoadKeyPair(String algorithm) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public KeyPair LoadKeyPair1(String algorithm) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         InputStream publicFis = getAssets().open("public.key");
         int publicSize = publicFis.available();
@@ -129,6 +134,31 @@ public class MainActivity extends AppCompatActivity {
         publicFis.close();
 
         InputStream privateFis = getAssets().open("private.key");
+        int privateSize = privateFis.available();
+        byte[] encodedPrivateKey = new byte[privateSize];
+        privateFis.read(encodedPrivateKey);
+        privateFis.close();
+
+        // Generate KeyPair.
+        KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
+        PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
+
+        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
+        PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+
+        return new KeyPair(publicKey, privateKey);
+    }
+
+    public KeyPair LoadKeyPair2(String algorithm) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+
+        InputStream publicFis = getAssets().open("public2.key");
+        int publicSize = publicFis.available();
+        byte[] encodedPublicKey = new byte[publicSize];
+        publicFis.read(encodedPublicKey);
+        publicFis.close();
+
+        InputStream privateFis = getAssets().open("private2.key");
         int privateSize = privateFis.available();
         byte[] encodedPrivateKey = new byte[privateSize];
         privateFis.read(encodedPrivateKey);
@@ -281,7 +311,9 @@ public class MainActivity extends AppCompatActivity {
                                 if(devices[recieveDeviceNum].checkIfAllMessageReceive()){
                                     devices[recieveDeviceNum].setEncodedHex();
                                     try {
-                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex)));
+                                        byte[] decode1 = rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex),privateKey2);
+                                        byte[] decode2 = rsaDecode(decode1,privateKey1);
+                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + new String(decode2, "UTF-8"));
                                     } catch (UnsupportedEncodingException e) {
                                         e.printStackTrace();
                                     }
@@ -294,7 +326,9 @@ public class MainActivity extends AppCompatActivity {
                                 if(devices[recieveDeviceNum].checkIfAllMessageReceive()){
                                     devices[recieveDeviceNum].setEncodedHex();
                                     try {
-                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex)));
+                                        byte[] decode1 = rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex),privateKey2);
+                                        byte[] decode2 = rsaDecode(decode1,privateKey1);
+                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + new String(decode2, "UTF-8"));
                                     } catch (UnsupportedEncodingException e) {
                                         e.printStackTrace();
                                     }
@@ -307,7 +341,9 @@ public class MainActivity extends AppCompatActivity {
                                 if(devices[recieveDeviceNum].checkIfAllMessageReceive()){
                                     devices[recieveDeviceNum].setEncodedHex();
                                     try {
-                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex)));
+                                        byte[] decode1 = rsaDecode(hexStringToByteArray(devices[recieveDeviceNum].encodedHex),privateKey2);
+                                        byte[] decode2 = rsaDecode(decode1,privateKey1);
+                                        adItem.add(Integer.toString(recieveDeviceNum) + " " + new String(decode2, "UTF-8"));
                                     } catch (UnsupportedEncodingException e) {
                                         e.printStackTrace();
                                     }
@@ -349,8 +385,9 @@ public class MainActivity extends AppCompatActivity {
         Intent ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
         Intent ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
 
-        final byte[] encodeData = rsaEncode("Dada Good");
-        String encodeDataToHex = bytesToHexString(encodeData);
+        final byte[] encodeData1 = rsaEncode("Dada Good".getBytes("UTF-8"),publicKey1);
+        final byte[] encodeData2 = rsaEncode(encodeData1,publicKey2);
+        String encodeDataToHex = bytesToHexString(encodeData2);
 
 //        byte[] decodeFrom = hexStringToByteArray(encodeDataToHex);
 //        final String decodeResult = rsaDecode(decodeFrom);
@@ -432,26 +469,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public byte[] rsaEncode(String plainText) {
+    public byte[] rsaEncode(byte[] plainText,PublicKey publicKey) {
         Encryption encryption = new Encryption();
         byte[] encryptedResult = "0".getBytes();
-
         try {
-            encryptedResult = encryption.cryptByRSA(plainText.getBytes("UTF-8"), publicKey, ALGORITHM, Cipher.ENCRYPT_MODE);
+            encryptedResult = encryption.cryptByRSA(plainText, publicKey, ALGORITHM, ENCRYPT_MODE);
         } catch (Exception e) {
             e.printStackTrace();}
         return encryptedResult;
     }
 
-    public String rsaDecode(byte[] result) throws UnsupportedEncodingException {
+    public byte[] rsaDecode(byte[] result, PrivateKey privateKey) throws UnsupportedEncodingException {
         Encryption encryption = new Encryption();
         byte[] decryptResult = "0".getBytes();
-
         try {
             decryptResult = encryption.cryptByRSA(result, privateKey, ALGORITHM, Cipher.DECRYPT_MODE);
         } catch (Exception e) {
             e.printStackTrace();}
-        return new String(decryptResult, "UTF-8");
+        return decryptResult;
     }
 
     public static byte[] hexStringToByteArray(String s) {
