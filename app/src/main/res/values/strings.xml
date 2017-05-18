@@ -9,7 +9,6 @@
     <string name="button_startAD">Start AD</string>
     <string name="button_stopAD">Stop AD</string>
 
-
     <string name="No_sup_Bluetooth">Bluetooth is not supported</string>
     <string name="No_sup_ble">BLE is not supported</string>
     <string name="label_data">Data:</string>
@@ -20,7 +19,6 @@
     <string name="disconnected">Disconnected</string>
     <string name="title_devices">BLE Device Scan</string>
     <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
-
     <string name="unknown_device">Unknown device</string>
     <string name="unknown_characteristic">Unknown characteristic</string>
     <string name="unknown_service">Unknown service</string>
@@ -35,10 +33,8 @@
     <string name="bt_not_enabled_leaving">User declined to enable Bluetooth, exiting Bluetooth Advertisements.</string>
     <string name="activity_main_title">Nearby Devices</string>
     <string name="broadcast_device">Broadcast Device</string>
-
     <string name="bt_not_supported">Bluetooth is not supported on this device.</string>
     <string name="bt_ads_not_supported">Bluetooth Advertisements are not supported on this device.</string>
-
     <string name="refresh">Refresh</string>
     <string name="start_error_prefix">Start Advertising failed: </string>
     <string name="start_error_already_started">already started.</string>

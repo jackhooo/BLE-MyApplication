@@ -1,12 +1,16 @@
 package com.example.apple.myapplication;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -63,9 +67,16 @@ public class MainActivity extends AppCompatActivity {
     private PublicKey publicKey2;
     private PrivateKey privateKey2;
 
+    Intent ServiceIntent = null;
+    Intent ServiceTwoIntent = null;
+    Intent ServiceThreeIntent = null;
+
+    private static final int MY_PERMISSION_RESPONSE = 42;
+
     private Device[] devices;
     Random random = new Random();
     int deviceNum;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,11 +117,20 @@ public class MainActivity extends AppCompatActivity {
 
         listAdapter = new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_expandable_list_item_1, deviceName);//ListView使用的Adapter，
         scanList.setAdapter(listAdapter);//將listView綁上Adapter
-
         scanList.setOnItemClickListener(new onItemClickListener()); //綁上OnItemClickListener，設定ListView點擊觸發事件
         mHandler = new Handler();
 
+        ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
+        ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
+        ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
+
         //Toast.makeText(getBaseContext(),Integer.toString(deviceNum), Toast.LENGTH_SHORT).show();
+
+        // Prompt for permissions
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.w("BleActivity", "Location access not granted!");
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, MY_PERMISSION_RESPONSE);
+        }
 
         try {
             KeyPair loadedKeyPair1 = LoadKeyPair1("RSA");
@@ -185,10 +205,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onPause():Stop Scan");
         mScanningMode = 3;
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
-
-        Intent ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
-        Intent ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
-        Intent ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
 
         stopService(ServiceIntent);
         stopService(ServiceTwoIntent);
@@ -381,11 +397,7 @@ public class MainActivity extends AppCompatActivity {
     //分別按下搜尋予停止搜尋button時的功能，分別為開始與停止AD
     public void adBtnClick(View v) throws UnsupportedEncodingException {
 
-        Intent ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
-        Intent ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
-        Intent ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
-
-        final byte[] encodeData1 = rsaEncode("Dada Good".getBytes("UTF-8"),publicKey1);
+        final byte[] encodeData1 = rsaEncode("1357 2468 1000 2017/5/4".getBytes("UTF-8"),publicKey1);
         final byte[] encodeData2 = rsaEncode(encodeData1,publicKey2);
         String encodeDataToHex = bytesToHexString(encodeData2);
 
@@ -395,6 +407,8 @@ public class MainActivity extends AppCompatActivity {
         String adMessage1 = encodeDataToHex.substring(0,44);
         String adMessage2 = encodeDataToHex.substring(44,88);
         String adMessage3 = encodeDataToHex.substring(88,128);
+
+        deviceNum = random.nextInt(4095 - 0 + 1) + 0;//random.nextInt(max - min + 1) + min
 
         switch (v.getId()) {
             case R.id.StartAdbutID:

@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "com.example.apple.myapplication"
         minSdkVersion 21
-        targetSdkVersion 22
+//        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -28,4 +28,5 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.1'
     compile 'com.android.support:design:25.3.1'
     testCompile 'junit:junit:4.12'
+    compile files('libs/bcprov-jdk15on-156.jar')
 }

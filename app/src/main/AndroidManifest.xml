@@ -4,8 +4,9 @@
 
     <!-- Min/target SDK versions (<uses-sdk>) managed by build.gradle -->
 
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
@@ -50,6 +51,10 @@
             android:exported="true" />
         <service
             android:name=".AdvertiserThreeService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".BluetoothLeService"
             android:enabled="true"
             android:exported="true"></service>
     </application>
