@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
     Intent ServiceTwoIntent = null;
     Intent ServiceThreeIntent = null;
 
+    Intent Server = null;
+
     private static final int MY_PERMISSION_RESPONSE = 42;
 
     private Device[] devices;
@@ -123,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
         ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
         ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
         ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
+
+        Server = new Intent(MainActivity.this, ServerService.class);
 
         //Toast.makeText(getBaseContext(),Integer.toString(deviceNum), Toast.LENGTH_SHORT).show();
 
@@ -209,6 +213,8 @@ public class MainActivity extends AppCompatActivity {
         stopService(ServiceIntent);
         stopService(ServiceTwoIntent);
         stopService(ServiceThreeIntent);
+
+        stopService(Server);
     }
 
     @Override
@@ -429,6 +435,8 @@ public class MainActivity extends AppCompatActivity {
                 ServiceThreeIntent.putExtra(AdvertiserThreeService.DEVICE_NUM, deviceNum );
                 startService(ServiceThreeIntent);
 
+                startService(Server);
+
                 break;
 
             case R.id.StopAdbutID:
@@ -436,6 +444,8 @@ public class MainActivity extends AppCompatActivity {
                 stopService(ServiceIntent);
                 stopService(ServiceTwoIntent);
                 stopService(ServiceThreeIntent);
+
+                stopService(Server);
 
                 break;
         }
