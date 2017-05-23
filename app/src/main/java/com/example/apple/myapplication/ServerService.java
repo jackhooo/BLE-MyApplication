@@ -203,6 +203,8 @@ public class ServerService extends Service {
                 BluetoothGattCharacteristic.PERMISSION_READ |
                         BluetoothGattCharacteristic.PERMISSION_WRITE);
 
+        characteristic.setValue("");
+
         //characteristicUUIDを設定
         BluetoothGattCharacteristic characteristic2 = new BluetoothGattCharacteristic(
                 UUID.fromString(CHAR2_UUID_YOU_CAN_CHANGE),
@@ -212,7 +214,6 @@ public class ServerService extends Service {
                         BluetoothGattCharacteristic.PERMISSION_WRITE);
 
         characteristic2.setValue("abc");
-
 
         //characteristicUUIDをserviceUUIDにのせる
         service.addCharacteristic(characteristic);

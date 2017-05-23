@@ -5,6 +5,7 @@
     <!-- Min/target SDK versions (<uses-sdk>) managed by build.gradle -->
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
@@ -58,13 +59,10 @@
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".MyService"
-            android:enabled="true"
-            android:exported="true" />
-        <service
             android:name=".ServerService"
             android:enabled="true"
             android:exported="true"></service>
+
     </application>
 
 </manifest>

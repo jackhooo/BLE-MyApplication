@@ -265,7 +265,7 @@ public class BluetoothLeService extends Service {
             return;
         }
 
-        if("00002a29-0000-1000-8000-00805f9b34fb".equals(characteristic.getUuid().toString())){
+        if("0000aaaa-0000-1000-8000-00805f9b34fb".equals(characteristic.getUuid().toString())){
 
             characteristic.setValue("hi");
             mBluetoothGatt.writeCharacteristic(characteristic);

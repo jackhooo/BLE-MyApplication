@@ -22,9 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.example.apple.myapplication.R.id.adtextView;
-import static com.example.apple.myapplication.R.id.messagetextView;
-import static com.example.apple.myapplication.R.id.nametextView;
 import static com.example.apple.myapplication.R.id.rectextView;
 
 public class Main2Activity extends AppCompatActivity {
@@ -35,10 +32,12 @@ public class Main2Activity extends AppCompatActivity {
     public static final String DEVICE_ADDRESS = "DEVICE_ADDRESS";
     public static final String DEVICE_REC = "DEVICE_REC";
     public static final String DEVICE_MESSAGE = "DEVICE_MESSAGE";
-    private TextView nameTextView;
-    private TextView adTextView;
+
+//    private TextView nameTextView;
+//    private TextView adTextView;
     private TextView recTextView;
-    private TextView messageTextView;
+//    private TextView messageTextView;
+
     private String mDeviceName;
     private String mDeviceAddress;
     private String mDeviceRec;
@@ -164,15 +163,15 @@ public class Main2Activity extends AppCompatActivity {
         mDeviceRec = intent.getStringExtra(DEVICE_REC);
         mDeviceMessage = intent.getStringExtra(DEVICE_MESSAGE);
 
-        nameTextView = (TextView) findViewById(nametextView);
-        adTextView = (TextView) findViewById(adtextView);
+//        nameTextView = (TextView) findViewById(nametextView);
+//        adTextView = (TextView) findViewById(adtextView);
         recTextView = (TextView) findViewById(rectextView);
-        messageTextView = (TextView) findViewById(messagetextView);
-
-        nameTextView.setText("name: " + mDeviceName);
-        adTextView.setText("address: " + mDeviceAddress);
+//        messageTextView = (TextView) findViewById(messagetextView);
+//
+//        nameTextView.setText("name: " + mDeviceName);
+//        adTextView.setText("address: " + mDeviceAddress);
         recTextView.setText("record: " + mDeviceRec);
-        messageTextView.setText("message: " + mDeviceMessage);
+//        messageTextView.setText("message: " + mDeviceMessage);
 
 
         ((TextView) findViewById(R.id.device_address)).setText(mDeviceAddress);
