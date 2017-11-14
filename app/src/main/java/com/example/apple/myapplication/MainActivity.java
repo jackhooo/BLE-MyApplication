@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         adItem = new ArrayList<String>();
 
         devices = new Device[10000];
+
         for (int i = 0; i < 10000; i += 1) {
             devices[i] = new Device();
         }
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
         ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
         ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
-
+        //用於連接
         Server = new Intent(MainActivity.this, ServerService.class);
 
         //Toast.makeText(getBaseContext(),Integer.toString(deviceNum), Toast.LENGTH_SHORT).show();
@@ -198,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
 
         return new KeyPair(publicKey, privateKey);
     }
-
 
     //需要注意的是，需加入一個stopLeScan在onPause()中，當按返回鍵或關閉程式時，需停止搜尋BLE
     //否則下次開啟程式時會影響到搜尋BLE device
@@ -435,6 +435,7 @@ public class MainActivity extends AppCompatActivity {
                 ServiceThreeIntent.putExtra(AdvertiserThreeService.DEVICE_NUM, deviceNum );
                 startService(ServiceThreeIntent);
 
+                //For connect
                 startService(Server);
 
                 break;
@@ -445,6 +446,11 @@ public class MainActivity extends AppCompatActivity {
                 stopService(ServiceTwoIntent);
                 stopService(ServiceThreeIntent);
 
+                ServiceIntent = new Intent(MainActivity.this, AdvertiserService.class);
+                ServiceTwoIntent = new Intent(MainActivity.this, AdvertiserTwoService.class);
+                ServiceThreeIntent = new Intent(MainActivity.this, AdvertiserThreeService.class);
+
+                //For connect
                 stopService(Server);
 
                 break;
